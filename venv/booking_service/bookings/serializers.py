@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Booking, BookingStatus
+from bookings.models import Booking, BookingStatus
 from django.utils import timezone
 
 class BookingSerializer(serializers.ModelSerializer):
