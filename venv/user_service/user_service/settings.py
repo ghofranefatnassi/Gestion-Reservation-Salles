@@ -74,43 +74,14 @@ TEMPLATES = [
 WSGI_APPLICATION = 'user_service.wsgi.application'
 
 # Database Configuration with Auto-Creation
-def create_database():
-    try:
-        conn = psycopg2.connect(
-            user=os.getenv('DB_USER', 'postgres'),
-            password=os.getenv('DB_PASSWORD', 'Babouch33*'),
-            host=os.getenv('DB_HOST', 'localhost'),
-            port=os.getenv('DB_PORT', '5432')
-        )
-        conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-        cursor = conn.cursor()
-        
-        # Create database if not exists
-        cursor.execute("SELECT 1 FROM pg_database WHERE datname='users_db'")
-        if not cursor.fetchone():
-            cursor.execute("CREATE DATABASE users_db")
-            print("Database 'users_db' created successfully")
-        
-        cursor.close()
-        conn.close()
-    except Exception as e:
-        print(f"Database connection error: {e}")
-
-# Execute database creation
-create_database()
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'users_db',
-        'USER': os.getenv('DB_USER', 'postgres'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'Babouch33*'),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', '5432'),
-        'CONN_MAX_AGE': 600,
-        'OPTIONS': {
-            'connect_timeout': 5,
-        },
+        'USER': 'admin',
+        'PASSWORD': 'Babouch33*',
+        'HOST': 'postgres',
+        'PORT': '5432',
     }
 }
 

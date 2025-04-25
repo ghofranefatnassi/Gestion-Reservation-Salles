@@ -33,3 +33,4 @@ class AmenityListView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filter_backends = [filters.SearchFilter]
     search_fields = ['name', 'description']
+

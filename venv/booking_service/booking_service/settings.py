@@ -78,43 +78,14 @@ WSGI_APPLICATION = 'booking_service.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-def create_database():
-    try:
-        conn = psycopg2.connect(
-            user=os.getenv('DB_USER', 'postgres'),
-            password=os.getenv('DB_PASSWORD', 'Babouch33*'),
-            host=os.getenv('DB_HOST', 'localhost'),
-            port=os.getenv('DB_PORT', '5432')
-        )
-        conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-        cursor = conn.cursor()
-        
-        # Create database if not exists
-        cursor.execute("SELECT 1 FROM pg_database WHERE datname='booking_db'")
-        if not cursor.fetchone():
-            cursor.execute("CREATE DATABASE booking_db")
-            print("Database 'booking_db' created successfully")
-        
-        cursor.close()
-        conn.close()
-    except Exception as e:
-        print(f"Database connection error: {e}")
-
-# Execute database creation
-create_database()
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'booking_db',
-        'USER': os.getenv('DB_USER', 'postgres'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'Babouch33*'),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', '5432'),
-        'CONN_MAX_AGE': 600,
-        'OPTIONS': {
-            'connect_timeout': 5,
-        },
+        'NAME': 'bookings_db',
+        'USER': 'admin',
+        'PASSWORD': 'Babouch33*',
+        'HOST': 'postgres',
+        'PORT': '5432',
     }
 }
 
