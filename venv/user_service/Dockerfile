@@ -1,25 +1,28 @@
-FROM python:3.9-slim
+FROM python:3.9.18-bullseye
 
-# Set environment variables (correct format)
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# Fix time sync and install dependencies
-RUN ln -sf /usr/share/zoneinfo/UTC /etc/localtime && \
-    apt-get update && \
+# Install system dependencies with retries and clean up
+RUN set -eux; \
+    apt-get update || apt-get update || true; \
     apt-get install -y --no-install-recommends \
         gcc \
         python3-dev \
         libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
+        && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
+# Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy application code
 COPY . .
 
-EXPOSE 8000
+EXPOSE 8001
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "user_service.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8001", "user_service.wsgi:application"]

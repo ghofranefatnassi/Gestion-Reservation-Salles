@@ -1,29 +1,28 @@
-# Use official Python image
-FROM python:3.9-slim
+FROM python:3.9.18-bullseye
 
 # Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# Install system dependencies (required for psycopg2, Kafka, etc.)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    python3-dev \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
+# Install system dependencies with retries and clean up
+RUN set -eux; \
+    apt-get update || apt-get update || true; \
+    apt-get install -y --no-install-recommends \
+        gcc \
+        python3-dev \
+        libpq-dev \
+        && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
 WORKDIR /app
 
-# Copy and install Python dependencies
+# Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the entire project
+# Copy application code
 COPY . .
 
-# Expose the port
-EXPOSE 8000
+EXPOSE 8001
 
-# Command to run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "booking_service.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8001", "room_service.wsgi:application"]

@@ -35,10 +35,7 @@ class Booking(models.Model):
                 check=models.Q(end_time__gt=models.F('start_time')),
                 name='end_time_after_start_time'
             ),
-            models.CheckConstraint(
-                check=models.Q(start_time__gte=timezone.now()),
-                name='start_time_in_future'
-            )
+            # Removed the timezone.now() constraint as it's not reliable in migrations
         ]
     
     def __str__(self):
@@ -51,6 +48,13 @@ class Booking(models.Model):
             
         if self.start_time < timezone.now():
             raise ValidationError("Cannot create booking in the past")
+        
+        # Additional business logic validation can go here
+    
+    def save(self, *args, **kwargs):
+        """Override save to include clean validation"""
+        self.clean()
+        super().save(*args, **kwargs)
     
     def is_active(self):
         """Check if booking is currently active (in progress)"""
@@ -63,17 +67,13 @@ class Booking(models.Model):
     
     def add_participant(self, user_id):
         """Add a participant to the booking"""
-        participants = self.participants
-        if user_id not in participants:
-            participants.append(user_id)
-            self.participants = participants
+        if user_id not in self.participants:
+            self.participants = self.participants + [user_id]  # Creates new list to trigger change
     
     def remove_participant(self, user_id):
         """Remove a participant from the booking"""
-        participants = self.participants
-        if user_id in participants:
-            participants.remove(user_id)
-            self.participants = participants
+        if user_id in self.participants:
+            self.participants = [pid for pid in self.participants if pid != user_id]
     
     def cancel(self):
         """Cancel the booking"""

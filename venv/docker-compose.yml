@@ -1,73 +1,73 @@
-version: '3.8'
-
 services:
-  postgres:
-    image: postgres:13
-    environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: Babouch33*
-      POSTGRES_MULTIPLE_DATABASES: users_db,rooms_db,bookings_db
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+  nginx:
+    build: ./nginx
     ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.0.0
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-
-  kafka:
-    image: confluentinc/cp-kafka:7.0.0
+      - "80:80"
     depends_on:
-      - zookeeper
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-    ports:
-      - "9092:9092"
+      - user_service
+      - room_service
+      - booking_service
 
   user_service:
     build: ./user_service
-    ports:
-      - "8001:8000"
     environment:
-      DB_NAME: users_db
-      DB_HOST: postgres
+      - DB_HOST=db_user
+      - DB_NAME=user_db
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
     depends_on:
-      postgres:
-        condition: service_healthy
+      - db_user
 
   room_service:
     build: ./room_service
-    ports:
-      - "8002:8000"
     environment:
-      DB_NAME: rooms_db
-      DB_HOST: postgres
+      - DB_HOST=db_room
+      - DB_NAME=room_db
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
     depends_on:
-      - postgres
-      - kafka
+      - db_room
 
   booking_service:
     build: ./booking_service
-    ports:
-      - "8003:8000"
     environment:
-      DB_NAME: bookings_db
-      DB_HOST: postgres
-      ROOM_SERVICE_URL: "http://room_service:8002"
+      - DB_HOST=db_booking
+      - DB_NAME=booking_db
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
     depends_on:
-      - postgres
-      - kafka
+      - db_booking
+      - user_service
+      - room_service
+
+  db_user:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: user_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata_user:/var/lib/postgresql/data
+
+  db_room:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: room_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata_room:/var/lib/postgresql/data
+
+  db_booking:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: booking_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata_booking:/var/lib/postgresql/data
 
 volumes:
-  postgres_data:
-  kafka_data:
+  pgdata_user:
+  pgdata_room:
+  pgdata_booking:
