@@ -25,4 +25,4 @@ COPY . .
 
 EXPOSE 8001
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8001", "booking_service.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8002", "booking_service.wsgi:application"]
