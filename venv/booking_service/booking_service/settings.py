@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'bookings',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -53,6 +54,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
 
 ROOT_URLCONF = 'booking_service.urls'
@@ -147,3 +150,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Booking-specific settings
 MAX_BOOKING_DURATION_HOURS = 4  # Maximum allowed booking duration
 MIN_BOOKING_NOTICE_HOURS = 1 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # Your React app's URL
+]
+
+CORS_ALLOW_CREDENTIALS = True

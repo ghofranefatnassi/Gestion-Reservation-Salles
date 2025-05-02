@@ -1,102 +1,160 @@
-import * as React from 'react';
-import PropTypes from 'prop-types';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
-import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
-import './RendezVous.css'
-import Teams from './Teams';
-import SurPlace from './SurPlace';
-import GoogleMeet from './GoogleMeet';
-import AppelTel from './AppelTel';
-import Skipe from './Skipe';
-function CustomTabPanel(props) {
-    const { children, value, index, ...other } = props;
-  
-    return (
-      <div
-        role="tabpanel"
-        hidden={value !== index}
-        id={`simple-tabpanel-${index}`}
-        aria-labelledby={`simple-tab-${index}`}
-        {...other}
-      >
-        {value === index && (
-          <Box sx={{ p: 3 }}>
-            <Typography>{children}</Typography>
-          </Box>
-        )}
-      </div>
-    );
-  }
-  
-  CustomTabPanel.propTypes = {
-    children: PropTypes.node,
-    index: PropTypes.number.isRequired,
-    value: PropTypes.number.isRequired,
-  };
-  
-  function a11yProps(index) {
-    return {
-      id: `simple-tab-${index}`,
-      'aria-controls': `simple-tabpanel-${index}`,
-    };
-  }
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+// Define the base URL for API requests
+const BASE_URL = 'http://localhost:8002/api/bookings/';
 
 const RendezVous = () => {
+  const [bookings, setBookings] = useState([]);
+  const [formData, setFormData] = useState({
+    room_id: '',
+    user_id: '',
+    title: '',
+    description: '',
+    start_time: '',
+    end_time: '',
+  });
+  const [error, setError] = useState(null);
 
-   
-    const [value, setValue] = React.useState(0);
-  
-    const handleChange = (event, newValue) => {
-      setValue(newValue);
+  // Fetch bookings data from the backend
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const response = await axios.get(BASE_URL);
+        setBookings(response.data);
+      } catch (err) {
+        setError('Error fetching bookings.');
+        console.error(err);
+      }
     };
 
-  return (
-<div className='RMain'>
-    <Box sx={{ width: '100%' }} bgcolor="#F2F2F2">
-    <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
-            <Tab label="Teams" {...a11yProps(0)} />
-            <Tab label="Rendez-vous sur place" {...a11yProps(1)} />
-            <Tab label="Google meet" {...a11yProps(2)} />
-            <Tab label="Apple téléphoniques" {...a11yProps(3)} />
-            <Tab label="Skipe" {...a11yProps(4)} />
-        </Tabs>
-    </Box>
-    <CustomTabPanel value={value} index={0}>
-    <div className='tit'>
-    Teams
-    </div>
-    <Teams/>
-    </CustomTabPanel>
-    <CustomTabPanel value={value} index={1}>
-    <div className='tit'>
-    Rendez-vous sur place
-    </div>
-        <SurPlace/>
-    </CustomTabPanel>
-    <CustomTabPanel value={value} index={2}>
-    <div className='tit'>
-    Google meet
-    </div>
-    <GoogleMeet/>
-</CustomTabPanel>
-<CustomTabPanel value={value} index={3}>
-<div className='tit'>
-Apple téléphoniques
-</div>
-<AppelTel/>
-</CustomTabPanel>
-<CustomTabPanel value={value} index={4}>
-<div className='tit'>
-Skipe
-</div>
-<Skipe/>
-</CustomTabPanel>
-</Box>
-</div>
-  )
-}
+    fetchBookings();
+  }, []);
 
-export default RendezVous
+  // Handle form input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  // Handle form submission to create a new booking
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await axios.post(BASE_URL, formData, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      setBookings([...bookings, response.data]); // Add the new booking to the list
+      setFormData({
+        room_id: '',
+        user_id: '',
+        title: '',
+        description: '',
+        start_time: '',
+        end_time: '',
+      });
+    } catch (err) {
+      setError('Error creating booking.');
+      console.error(err);
+    }
+  };
+
+  // Render the list of bookings
+  const renderBookings = () => {
+    return bookings.map((booking) => (
+      <div key={booking.id} className="booking-item">
+        <h3>{booking.title}</h3>
+        <p>{booking.description}</p>
+        <p>Start Time: {booking.start_time}</p>
+        <p>End Time: {booking.end_time}</p>
+        <p>Status: {booking.status_display}</p>
+        <p>Duration: {booking.duration} hours</p>
+      </div>
+    ));
+  };
+
+  return (
+    <div className="rendezvous">
+      <h1>Rendezvous Management</h1>
+      
+      {/* Error message */}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+
+      {/* Booking form */}
+      <form onSubmit={handleSubmit}>
+        <h2>Create a New Booking</h2>
+        <div>
+          <label>Room ID</label>
+          <input
+            type="number"
+            name="room_id"
+            value={formData.room_id}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+        <div>
+          <label>User ID</label>
+          <input
+            type="number"
+            name="user_id"
+            value={formData.user_id}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+        <div>
+          <label>Title</label>
+          <input
+            type="text"
+            name="title"
+            value={formData.title}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+        <div>
+          <label>Description</label>
+          <textarea
+            name="description"
+            value={formData.description}
+            onChange={handleInputChange}
+          ></textarea>
+        </div>
+        <div>
+          <label>Start Time</label>
+          <input
+            type="datetime-local"
+            name="start_time"
+            value={formData.start_time}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+        <div>
+          <label>End Time</label>
+          <input
+            type="datetime-local"
+            name="end_time"
+            value={formData.end_time}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+        <button type="submit">Create Booking</button>
+      </form>
+
+      {/* Display all bookings */}
+      <h2>Existing Bookings</h2>
+      {renderBookings()}
+    </div>
+  );
+};
+
+export default RendezVous;

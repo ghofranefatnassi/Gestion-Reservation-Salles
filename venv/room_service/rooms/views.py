@@ -8,7 +8,7 @@ from .filters import RoomFilter
 class RoomListView(generics.ListCreateAPIView):
     queryset = Room.objects.filter(is_active=True)
     serializer_class = RoomSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.AllowAny]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = RoomFilter
     search_fields = ['name', 'room_type']
@@ -18,7 +18,7 @@ class RoomListView(generics.ListCreateAPIView):
 class RoomDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Room.objects.all()
     serializer_class = RoomSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.AllowAny]
 
     # Soft delete: just mark as inactive
     def perform_destroy(self, instance):

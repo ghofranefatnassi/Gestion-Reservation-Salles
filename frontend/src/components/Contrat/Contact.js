@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
@@ -51,9 +51,34 @@ function a11yProps(index) {
 }
 
 const Contact = () => {
+  const [error, setError] = useState('');
+
   const navigate = useNavigate();
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [users, setUsers] = useState([]);
   const [value, setValue] = React.useState(0);
+  async function fetchUsers() {
+    try {
+        const response = await fetch('http://localhost:8000/api/auth/users/');
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        console.log('Parsed data:', data);
+
+        // Extract users from the `results` field
+        const users = data.results || [];
+        setUsers(users); // setUsers is your state update function
+
+    } catch (error) {
+        console.error('❌ Failed to fetch users:', error);
+    }
+}
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+
+  const [anchorEl, setAnchorEl] = React.useState(null);
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -65,6 +90,29 @@ const Contact = () => {
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
+  };
+
+  const handleDelete = async (id) => {
+    const token = localStorage.getItem('access_token');
+    const confirmed = window.confirm("Are you sure you want to delete this user?");
+    if (!confirmed) return;
+  
+    try {
+      const response = await fetch(`/api/users/${id}/`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+  
+      if (response.ok) {
+        setUsers(prev => prev.filter(user => user.id !== id));
+      } else {
+        console.error('Failed to delete user');
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+    }
   };
 
   return (
@@ -145,17 +193,20 @@ const Contact = () => {
           <Table sx={{ minWidth: 650 }} size="small" aria-label="employee table">
             <TableHead>
               <TableRow>
-                <TableCell sx={{ color: '#7C858C', fontWeight: '500' }}>
-                  Photo 
-                </TableCell>
                 <TableCell align="right" sx={{ color: '#7C858C', fontWeight: '500' }}>
                   E-amil 
                 </TableCell>
                 <TableCell align="right" sx={{ color: '#7C858C', fontWeight: '500' }}>
-                  Role
+                  Username 
                 </TableCell>
                 <TableCell align="right" sx={{ color: '#7C858C', fontWeight: '500' }}>
-                  Username 
+                  First name 
+                </TableCell>
+                <TableCell align="right" sx={{ color: '#7C858C', fontWeight: '500' }}>
+                  Last name 
+                </TableCell>
+                <TableCell align="right" sx={{ color: '#7C858C', fontWeight: '500' }}>
+                  Role
                 </TableCell>
                 <TableCell align="right" sx={{ color: '#7C858C', fontWeight: '500' }}>
                   Is active
@@ -172,31 +223,39 @@ const Contact = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              <TableRow>
-                <TableCell align="right"></TableCell>
-                <TableCell align="right"></TableCell>
-                <TableCell align="right"></TableCell>
-                <TableCell align="right"></TableCell>
-                <TableCell align="right"></TableCell>
-                <TableCell align="right"></TableCell>
-                <TableCell align="right"></TableCell>
-                <TableCell align="right">
-                  <Button sx={{ 
-                    color: '#FFf',
-                    backgroundColor:"#399918" ,
-                    width:"71px",
-                    height:"18px",
-                    '&:hover': {
-                  backgroundColor: '#25722E',
-                    },
-                    }}
-                    onClick={()=>navigate('/Employees/Update')}>Update</Button>
-                  <IconButton aria-label="delete">
-                      <DeleteIcon sx={{ color: '#FF0000' }}/>
-                    </IconButton>
-                </TableCell>
-              </TableRow>
-            </TableBody>
+  {users.map((user) => (
+    <TableRow key={user.id}>
+      <TableCell align="right">{user.email}</TableCell>
+      <TableCell align="right">{user.username}</TableCell>
+      <TableCell align="right">{user.first_name}</TableCell>
+      <TableCell align="right">{user.last_name}</TableCell>
+      <TableCell align="right">{user.role}</TableCell>
+      <TableCell align="right">{user.is_active ? 'Yes' : 'No'}</TableCell>
+      <TableCell align="right">{user.is_staff ? 'Yes' : 'No'}</TableCell>
+      <TableCell align="right">{user.last_login ? new Date(user.last_login).toLocaleString() : 'Never'}</TableCell>
+      <TableCell align="right">
+        <Button
+          sx={{
+            color: '#FFF',
+            backgroundColor: '#399918',
+            width: "71px",
+            height: "18px",
+            '&:hover': { backgroundColor: '#25722E' },
+          }}
+          onClick={() => navigate(`/Employees/Update/${user.id}`)}
+        >
+          Update
+        </Button>
+        <IconButton
+          aria-label="delete"
+          onClick={() => handleDelete(user.id)}
+        >
+          <DeleteIcon sx={{ color: '#FF0000' }} />
+        </IconButton>
+      </TableCell>
+    </TableRow>
+  ))}
+</TableBody>
           </Table>
         </TableContainer>
       </CustomTabPanel>

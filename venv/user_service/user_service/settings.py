@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'dj_rest_auth',
     'dj_rest_auth.registration',
-    
+    'corsheaders',
     # Local apps
     'users',
 ]
@@ -53,6 +53,9 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
+
 ]
 
 ROOT_URLCONF = 'user_service.urls'
@@ -158,8 +161,8 @@ SOCIALACCOUNT_PROVIDERS = {
         'SCOPE': ['profile', 'email'],
         'AUTH_PARAMS': {'access_type': 'online'},
         'APP': {
-            'client_id': os.getenv('GOOGLE_CLIENT_ID', '742170507889-d6q2vvmrd680bds91iosogoqt2m9m7g1.apps.googleusercontent.com'),
-            'secret': os.getenv('GOOGLE_CLIENT_SECRET', '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'),
+            'client_id': os.getenv('GOOGLE_CLIENT_ID', '742170507889-v03ub5pg2fqvn6qh85h3471elcqb80h6.apps.googleusercontent.com'),
+            'secret': os.getenv('GOOGLE_CLIENT_SECRET', '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'),
             'key': ''
         }
     }
@@ -213,3 +216,11 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+
+
+# CORS Settings
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # Your React app's URL
+]
+
+CORS_ALLOW_CREDENTIALS = True
